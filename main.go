@@ -1,9 +1,21 @@
 package main
 
 import (
-	"fmt"
+	"driver/category"
+	"flag"
+	"ssdb"
+
+	"github.com/golang/glog"
 )
 
 func main() {
-	fmt.Println(123)
+	flag.Parse()
+	defer glog.Flush()
+
+	glog.Info("Spider GO!")
+
+	ssdbtool.InitSSDB()
+	defer ssdbtool.SSDBPool.ClosePool()
+
+	drivercategory.GetCategoryLevel()
 }
