@@ -25,10 +25,8 @@ func InitSSDB() {
 		AcquireIncrement: 5,
 	})
 	if err != nil {
-		glog.Fatalf("SSDB pool init error : %+v", err)
+		glog.Fatalf("SSDB pool init error : %+v\n", err)
 	}
-
-	SSDBPool.resetEnableCategory()
 }
 
 func (this *ConnectionPool) ClosePool() {
@@ -38,7 +36,7 @@ func (this *ConnectionPool) ClosePool() {
 func (this *ConnectionPool) GetSSDBClient() *gossdb.Client {
 	c, err := this.pool.NewClient()
 	if err != nil {
-		glog.Fatalf("SSDB get client error : %+v", err)
+		glog.Fatalf("SSDB get client error : %+v\n", err)
 	}
 	return c
 }
@@ -49,13 +47,13 @@ func (this *ConnectionPool) resetEnableCategory() {
 
 	res, err := c.HgetAll("all_level")
 	if err != nil {
-		glog.Error("SSDB get all level error : %+v", err)
+		glog.Errorf("SSDB get all level error : %+v\n", err)
 	}
 
 	for level := range res {
 		err := c.Hclear(fmt.Sprintf("category_enable_lv%v", level))
 		if err != nil {
-			glog.Error("SSDB clear enable error : %+v", err)
+			glog.Errorf("SSDB clear enable error : %+v\n", err)
 		}
 	}
 }

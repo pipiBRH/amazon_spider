@@ -3,6 +3,7 @@ package main
 import (
 	"driver/category"
 	"flag"
+
 	"ssdb"
 
 	"github.com/golang/glog"
@@ -16,6 +17,6 @@ func main() {
 
 	ssdbtool.InitSSDB()
 	defer ssdbtool.SSDBPool.ClosePool()
-
-	drivercategory.GetCategoryLevel()
+	// drivercategory.GetCategoryLevel1()
+	drivercategory.GetCategoryLevel(3)
 }
