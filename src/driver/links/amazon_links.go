@@ -1,6 +1,7 @@
 package driverlink
 
 import (
+	"crypto/md5"
 	"curl"
 	"fmt"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/golang/glog"
@@ -24,8 +26,8 @@ func start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		targetUrl, err := ssdbtool.SSDBPool.GetQueueLink()
-
+		pdata := make(map[string]interface{})
+		targetUrl, tailKey, pageLog, err := ssdbtool.SSDBPool.GetQueueLink()
 		if err != nil {
 			glog.Warningf("get target links error  : %+v", err)
 			break
@@ -45,6 +47,9 @@ func start(wg *sync.WaitGroup) {
 		if err != nil {
 			glog.Errorf("Curl Error : %+v", err)
 		}
+
+		time.Sleep(time.Microsecond * 500)
+
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
 			glog.Errorf("Parser links : %v\n   Error : %+v", targetUrl, err)
@@ -56,13 +61,20 @@ func start(wg *sync.WaitGroup) {
 			glog.Warningf("get page links : %v\n   Error : %+v", targetUrl, err)
 			continue
 		}
-		for sp := 1; sp < int(totalPage); sp++ {
+
+		glog.Infof("target : %v | totalpage : %v", targetUrl, pageLog)
+
+		for sp := pageLog; sp <= int(totalPage); sp++ {
+			ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
+
 			target := fmt.Sprintf("%v&page=%v", targetUrl, sp)
 			rdata, err := curl.GetURLData(target)
 			if err != nil {
 				glog.Errorf("Curl Error : %+v", err)
 				continue
 			}
+
+			time.Sleep(time.Microsecond * 500)
 
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 			if err != nil {
@@ -76,17 +88,18 @@ func start(wg *sync.WaitGroup) {
 				break
 			}
 			root.Each(func(i int, s *goquery.Selection) {
-				s.Find("s-access-detail-page").Each(func(subI int, sub *goquery.Selection) {
-					result, ok := sub.Attr("href")
-					if ok {
-						res, err := url.Parse(result)
-						if err != nil {
-							glog.Warningf("Url Parse Error : %+v", err)
-						}
-						fmt.Println(res.Hostname(), res.EscapedPath())
+				result, ok := s.Find(".s-access-detail-page").First().Attr("href")
+				if ok {
+					res, err := url.Parse(result)
+					if err != nil {
+						glog.Warningf("Url Parse Error : %+v", err)
 					}
-				})
+					pid := fmt.Sprintf("%x", md5.Sum([]byte(res.EscapedPath())))
+					productUrl := fmt.Sprintf("https://%v%v\n\n", res.Hostname(), res.EscapedPath())
+					pdata[pid] = productUrl
+				}
 			})
+			ssdbtool.SSDBPool.SetProductLink(pdata)
 		}
 	}
 }

@@ -142,35 +142,48 @@ func (this *ConnectionPool) SetLinkQueue() error {
 		glog.Errorf("SSDB push tail queue error : %+v", err)
 		return err
 	}
-	glog.Info("SSDB push tail queue size : %v", size)
+	glog.Infof("SSDB push tail queue size : %v", size)
 	return nil
 }
 
-func (this *ConnectionPool) GetQueueLink() (string, error) {
+func (this *ConnectionPool) GetQueueLink() (string, string, int, error) {
 	c := SSDBPool.GetSSDBClient()
 	defer c.Close()
 
 	tailKey, err := c.Qpop_back("tail_links")
 	if err != nil {
 		glog.Errorf("SSDB pop queue key error : %+v", err)
-		return "", err
+		return "", "", 1, err
 	}
-	if tailKey.String() == "" {
+	tk := tailKey.String()
+	if tk == "" {
 		glog.Errorln("SSDB tail queue empty")
-		return "", nil
+		return "", "", 1, nil
 	}
 
-	data, err := c.Hget("category_tail", tailKey.String())
+	data, err := c.Hget("category_tail", tk)
 	if err != nil {
 		glog.Errorf("SSDB hget tail error : %+v", err)
-		return "", err
-	}
-	if data.String() == "" {
-		glog.Errorln("SSDB hget tail nil, key : %v", tailKey.String())
-		return "", nil
+		return "", tk, 1, err
 	}
 
-	return data.String(), nil
+	if data.String() == "" {
+		glog.Errorf("SSDB hget tail nil, key : %v", tk)
+		return "", tk, 1, nil
+	}
+
+	page, err := c.Hget("page_log", tk)
+	if err != nil {
+		glog.Errorf("SSDB get page node : %v error : %+v", tk, err)
+		return "", tk, 1, err
+	}
+
+	if page.Int() == 0 || page.Int() >= 400 {
+		this.ClearPageLog(tk)
+		return data.String(), tk, 1, nil
+	}
+
+	return data.String(), tk, page.Int(), nil
 }
 
 func (this *ConnectionPool) GetQueueSize() (int64, error) {
@@ -179,7 +192,7 @@ func (this *ConnectionPool) GetQueueSize() (int64, error) {
 
 	size, err := c.Qsize("category_tail")
 	if err != nil {
-		glog.Errorln("SSDB get qsize error : %v", err)
+		glog.Errorf("SSDB get qsize error : %+v", err)
 		return 0, err
 	}
 	return size, nil
@@ -191,8 +204,41 @@ func (this *ConnectionPool) GetLevelSize(level int) (int64, error) {
 
 	size, err := c.Hsize(fmt.Sprintf("category_enable_lv%v", level))
 	if err != nil {
-		glog.Errorln("SSDB get hsize level_%v error : %v", level, err)
+		glog.Errorf("SSDB get hsize level_%v error : %+v", level, err)
 		return 0, err
 	}
 	return size, nil
+}
+
+func (this *ConnectionPool) SavePageLog(node string, page int) {
+	c := SSDBPool.GetSSDBClient()
+	defer c.Close()
+
+	err := c.Hset("page_log", node, page)
+	if err != nil {
+		glog.Errorf("SSDB save page error : %+v", err)
+	}
+}
+
+func (this *ConnectionPool) ClearPageLog(node string) {
+	c := SSDBPool.GetSSDBClient()
+	defer c.Close()
+
+	err := c.Hdel("page_log", node)
+	if err != nil {
+		glog.Errorf("SSDB clear page error : %+v", err)
+	}
+}
+
+func (this *ConnectionPool) SetProductLink(data map[string]interface{}) {
+	if len(data) < 1 {
+		glog.Errorln("SSDB set product link nil")
+	}
+	c := SSDBPool.GetSSDBClient()
+	defer c.Close()
+
+	err := c.MultiHset("product_links", data)
+	if err != nil {
+		glog.Errorf("SSDB set product link error : %+v", err)
+	}
 }
