@@ -28,13 +28,12 @@ func start(wg *sync.WaitGroup) {
 	for {
 		targetUrl, tailKey, pageLog, err := ssdbtool.SSDBPool.GetQueueLink()
 		if err != nil {
-			glog.Warningf("get target links error  : %+v", err)
 			break
 		}
 		if targetUrl == "" {
 			size, err := ssdbtool.SSDBPool.GetQueueSize()
 			if err != nil {
-				glog.Errorf("get size error")
+				break
 			}
 			if size == 0 {
 				glog.Warningln("tail queue empty")
@@ -44,31 +43,34 @@ func start(wg *sync.WaitGroup) {
 
 		rdata, err := curl.GetURLData(targetUrl)
 		if err != nil {
-			glog.Errorf("Curl Error : %+v", err)
+			glog.Errorf("Curl Error => %+v", err)
 		}
 
 		time.Sleep(time.Microsecond * 500)
 
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
-			glog.Errorf("Parser links : %v\n   Error : %+v", targetUrl, err)
+			glog.Errorf("Parser links => %v\n   Error => %+v", targetUrl, err)
 			continue
 		}
-
-		totalPage, err := strconv.ParseInt(strings.Trim(doc.Find(".pagnDisabled").First().Text(), " "), 10, 32)
+		pageText := doc.Find(".pagnDisabled").First().Text()
+		fmt.Println("pageText :", pageText)
+		totalPage, err := strconv.ParseInt(strings.Trim(pageText, " "), 10, 32)
 		if err != nil {
-			glog.Warningf("get page links : %v\n   Error : %+v", targetUrl, err)
+			glog.Warningf("get page links => %v\n   Error => %+v", targetUrl, err)
 			continue
 		}
 
-		glog.Infof("target : %v | totalpage : %v", targetUrl, pageLog)
+		glog.Infof("target => %v | totalpage => %v", targetUrl, totalPage)
 
 		for sp := pageLog; sp <= int(totalPage); sp++ {
 			pdata := make(map[string]interface{})
 			target := fmt.Sprintf("%v&page=%v", targetUrl, sp)
+			fmt.Println(target)
+
 			rdata, err := curl.GetURLData(target)
 			if err != nil {
-				glog.Errorf("Curl Error : %+v", err)
+				glog.Errorf("Curl Error => %+v", err)
 				continue
 			}
 
@@ -76,13 +78,13 @@ func start(wg *sync.WaitGroup) {
 
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 			if err != nil {
-				glog.Errorf("Parser links : %v\n   Error : %+v", targetUrl, err)
+				glog.Errorf("Parser links => %v\n   Error => %+v", targetUrl, err)
 				continue
 			}
 
 			root := doc.Find(".s-item-container")
 			if root.Size() == 0 {
-				glog.Warningf("Nil Product Page : %s", target)
+				glog.Warningf("Nil Product Page => %s", target)
 				break
 			}
 			root.Each(func(i int, s *goquery.Selection) {
@@ -90,15 +92,17 @@ func start(wg *sync.WaitGroup) {
 				if ok {
 					res, err := url.Parse(result)
 					if err != nil {
-						glog.Warningf("Url Parse Error : %+v", err)
+						glog.Warningf("Url Parse Error => %+v", err)
 					}
 					pid := fmt.Sprintf("%x", md5.Sum([]byte(res.EscapedPath())))
 					productUrl := fmt.Sprintf("https://%v%v\n\n", res.Hostname(), res.EscapedPath())
 					pdata[pid] = productUrl
 				}
 			})
-			ssdbtool.SSDBPool.SetProductLink(pdata)
-			ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
+			err = ssdbtool.SSDBPool.SetProductLink(pdata)
+			if err == nil {
+				ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
+			}
 		}
 	}
 }

@@ -12,25 +12,25 @@ import (
 	"github.com/golang/glog"
 )
 
-func getRootCate(level int) int64 {
+func getRootCate(level int) bool {
 	ssdbtool.SSDBPool.ResetEnableCategory()
 
 	target := "https://www.amazon.co.jp/gp/site-directory"
 	rdata, err := curl.GetURLData(target)
 	if err != nil {
-		glog.Errorf("Curl Error : %+v", err)
+		return true
 	}
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 	if err != nil {
-		glog.Errorf("goquery parser error : %+v", err)
-		return 0
+		glog.Errorf("goquery parser error => %+v", err)
+		return true
 	}
 
 	root := doc.Find(".popover-grouping")
 	if root.Size() == 0 {
-		glog.Errorf("Nil Product Page : %s", target)
-		return 0
+		glog.Errorf("Nil Product Page => %s", target)
+		return true
 	}
 
 	data := make(map[string]interface{})
@@ -42,7 +42,7 @@ func getRootCate(level int) int64 {
 				if value, check := sub.Attr("href"); check {
 					res, err := url.Parse(value)
 					if err != nil {
-						glog.Warningf("Url Parse Error : %+v", err)
+						glog.Warningf("Url Parse Error => %+v", err)
 					} else {
 						if len(res.Query()["node"]) > 0 {
 							node := res.Query()["node"][0]
@@ -55,30 +55,29 @@ func getRootCate(level int) int64 {
 		}
 	})
 	ssdbtool.SSDBPool.SetCate(1, data, "")
-	hsize, _ := ssdbtool.SSDBPool.GetLevelSize(level + 1)
-	return hsize
+	hsizeCheck, _ := ssdbtool.SSDBPool.GetLevelSize(level + 1)
+	return hsizeCheck
 }
 
-func getSubCategory(level int) int64 {
+func getSubCategory(level int) bool {
 	tail := make(map[string]interface{})
 	parentLevel := level - 1
 	levelData, err := ssdbtool.SSDBPool.GetCategoryLinks(parentLevel)
 	if err != nil {
-		glog.Errorf("get level_%v links error  : %+v", parentLevel, err)
-		return 0
+		return true
 	}
 	fmt.Println(len(levelData))
 	for parentNode, links := range levelData {
 		data := make(map[string]interface{})
 		rdata, err := curl.GetURLData(string(links))
 		if err != nil {
-			glog.Errorf("Curl links : %v\n   Error : %+v", links, err)
+			glog.Errorf("Curl links => %v\n   Error => %+v", links, err)
 			continue
 		}
 
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
-			glog.Errorf("Parser links : %v\n   Error : %+v", links, err)
+			glog.Errorf("Parser links => %v\n   Error => %+v", links, err)
 			continue
 		}
 		root := doc.Find(`[id^="categoryTiles"]`)
@@ -94,7 +93,7 @@ func getSubCategory(level int) int64 {
 			if value, check := sub.Attr("href"); check {
 				res, err := url.Parse(value)
 				if err != nil {
-					glog.Warningf("Url Parse Error : %+v", err)
+					glog.Warningf("Url Parse Error => %+v", err)
 				} else {
 					if len(res.Query()["node"]) > 0 {
 						node := res.Query()["node"][0]
@@ -107,25 +106,25 @@ func getSubCategory(level int) int64 {
 		err = ssdbtool.SSDBPool.SetCate(level, data, parentNode)
 		if err != nil {
 			fmt.Println(links, "is tail nil")
-			glog.Warningf("links Warning : %+v", links)
+			glog.Warningf("links Warning => %+v", links)
 			tail[parentNode] = string(links)
 		}
 	}
 	ssdbtool.SSDBPool.SetTailCate(tail)
-	hsize, _ := ssdbtool.SSDBPool.GetLevelSize(level + 1)
-	return hsize
+	hsizeCheck, _ := ssdbtool.SSDBPool.GetLevelSize(level + 1)
+	return hsizeCheck
 }
 
-func GetCategoryLevel(level int) {
+func GetCategoryLevel(level int) bool {
 	if level < 1 {
-		glog.Fatalf("level error : %v", level)
-		return
+		glog.Fatalf("level error => %v", level)
+		return false
 	}
 
 	switch level {
 	case 1:
-		getRootCate(level)
+		return getRootCate(level)
 	default:
-		getSubCategory(level)
+		return getSubCategory(level)
 	}
 }

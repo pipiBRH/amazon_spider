@@ -3,7 +3,8 @@ package main
 import (
 	"driver/links"
 	"sync"
-	// "driver/category"
+
+	"driver/category"
 	"flag"
 
 	"ssdb"
@@ -20,10 +21,19 @@ func main() {
 	ssdbtool.InitSSDB()
 	defer ssdbtool.SSDBPool.ClosePool()
 
-	// drivercategory.GetCategoryLevel(6)
+	// startCategory(1)
+	startProduct(1)
 
+}
+
+func startCategory(level int) {
+	for drivercategory.GetCategoryLevel(level) {
+		level++
+	}
+}
+
+func startProduct(znum int) {
 	var wg sync.WaitGroup
-	znum := 1
 	wg.Add(znum)
 	driverlink.GetProductLinks(znum, &wg)
 	wg.Wait()
