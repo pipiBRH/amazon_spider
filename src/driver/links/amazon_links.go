@@ -26,7 +26,6 @@ func start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		pdata := make(map[string]interface{})
 		targetUrl, tailKey, pageLog, err := ssdbtool.SSDBPool.GetQueueLink()
 		if err != nil {
 			glog.Warningf("get target links error  : %+v", err)
@@ -65,8 +64,7 @@ func start(wg *sync.WaitGroup) {
 		glog.Infof("target : %v | totalpage : %v", targetUrl, pageLog)
 
 		for sp := pageLog; sp <= int(totalPage); sp++ {
-			ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
-
+			pdata := make(map[string]interface{})
 			target := fmt.Sprintf("%v&page=%v", targetUrl, sp)
 			rdata, err := curl.GetURLData(target)
 			if err != nil {
@@ -100,6 +98,7 @@ func start(wg *sync.WaitGroup) {
 				}
 			})
 			ssdbtool.SSDBPool.SetProductLink(pdata)
+			ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
 		}
 	}
 }
