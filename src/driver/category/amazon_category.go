@@ -13,7 +13,7 @@ import (
 )
 
 func getRootCate(level int) bool {
-	ssdbtool.SSDBPool.ResetEnableCategory()
+	ssdbtool.SSDBPool.ResetEnableCategoryAndPageLog()
 
 	target := "https://www.amazon.co.jp/gp/site-directory"
 	rdata, err := curl.GetURLData(target)

@@ -22,7 +22,7 @@ func main() {
 	defer ssdbtool.SSDBPool.ClosePool()
 
 	// startCategory(1)
-	startProduct(1)
+	startProduct(2)
 
 }
 

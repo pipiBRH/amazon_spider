@@ -3,3 +3,5 @@
 pkg/*
 bin/*
 log/*
+node_modules
+*.json

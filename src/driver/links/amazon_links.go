@@ -16,7 +16,7 @@ import (
 )
 
 func GetProductLinks(znum int, wg *sync.WaitGroup) {
-	ssdbtool.SSDBPool.SetLinkQueue()
+	// ssdbtool.SSDBPool.SetLinkQueue()
 	for index := 0; index < znum; index++ {
 		go start(wg)
 	}
@@ -41,15 +41,16 @@ func start(wg *sync.WaitGroup) {
 			}
 		}
 
-		rdata, err := curl.GetURLData(targetUrl)
+		rdata, err := curl.GetURLDataChrome(targetUrl)
 		if err != nil {
 			glog.Errorf("Curl Error => %+v", err)
 		}
 
-		time.Sleep(time.Microsecond * 500)
+		time.Sleep(time.Microsecond * 10)
 
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
+			fmt.Println("DOM:", rdata)
 			glog.Errorf("Parser links => %v\n   Error => %+v", targetUrl, err)
 			continue
 		}
@@ -68,13 +69,13 @@ func start(wg *sync.WaitGroup) {
 			target := fmt.Sprintf("%v&page=%v", targetUrl, sp)
 			fmt.Println(target)
 
-			rdata, err := curl.GetURLData(target)
+			rdata, err := curl.GetURLDataChrome(target)
 			if err != nil {
 				glog.Errorf("Curl Error => %+v", err)
 				continue
 			}
 
-			time.Sleep(time.Microsecond * 500)
+			time.Sleep(time.Microsecond * 10)
 
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 			if err != nil {
@@ -101,7 +102,7 @@ func start(wg *sync.WaitGroup) {
 			})
 			err = ssdbtool.SSDBPool.SetProductLink(pdata)
 			if err == nil {
-				ssdbtool.SSDBPool.SavePageLog(tailKey, sp)
+				ssdbtool.SSDBPool.SavePageLog(tailKey, sp+1)
 			}
 		}
 	}

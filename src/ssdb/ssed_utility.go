@@ -178,8 +178,12 @@ func (this *ConnectionPool) GetQueueLink() (string, string, int, error) {
 		return "", tk, 1, err
 	}
 
-	if page.Int() == 0 || page.Int() >= 400 {
-		this.ClearPageLog(tk)
+	// if page.Int() == 0 || page.Int() > 400 {
+	// 	this.ClearPageLog(tk)
+	// 	return data.String(), tk, 1, nil
+	// }
+
+	if page.Int() == 0 {
 		return data.String(), tk, 1, nil
 	}
 

@@ -1,11 +1,26 @@
 package curl
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 
 	"github.com/golang/glog"
 )
+
+func GetURLDataChrome(url string) (string, error) {
+	cmd := exec.Command("node", "./chrome.js", url)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		glog.Errorf("CMD run Error : %+v", err)
+		return "", err
+	}
+	return fmt.Sprintf("%s", out.String()), nil
+}
 
 func GetURLData(url string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)
@@ -13,14 +28,17 @@ func GetURLData(url string) (string, error) {
 		glog.Errorf("New Request Error : %+v", err)
 		return "", err
 	}
+	req.Header.Add(
+		"authority",
+		"www.amazon.co.jp")
 
 	req.Header.Add(
 		"User-Agent",
-		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36")
+		"User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:61.0) Gecko/20100101 Firefox/61.0")
 
 	req.Header.Add(
 		"cookie",
-		`session-id=355-8078946-8525209; ubid-acbjp=355-4342028-5983344; x-wl-uid=1pIGHhg2QVTJ2j2Tx0h3Lb5OKLccu0uj5BL2Afof5UekLAU0miMfcNDwG8VFK8bMNUfbaex+c3fg=; session-token="0LJYyXedoNap06mEeF8phHfwCgQnk/2uz6Euiigl3EXRldwVoadlZ90c6aNP3lOpGLu2iFvTjAWOvNSG4HkdYc+XhufA1jvK7pVLlV6Tf4zwodS84bdsugeV1hMOR+9VJrvhy6Ujg3BIUQAD3itKpARk6PyZcY98jQYfwKgJV7/16FrM0i/gaF7E+FJuXrsUEXfrn8b3ysgxYJBcP+kIFQ=="; x-amz-captcha-1=1534921756664722; x-amz-captcha-2=qRINUJ+Wr9d/OXk1tvh7Gg==; amznacsleftnav-d8c684c1-6ab5-3ef9-a6eb-63ba4c0d071d=1; session-id-time=2082787201l; csm-hit=tb:2215R08Q1S1DAX43B18Y+s-2215R08Q1S1DAX43B18Y|1534918284911&adb:adblk_yes`)
+		`session-id=358-9454036-7733051; session-id-time=2082787201l; csm-hit=tb:9G1EAYNFHMH9M9EBV54Q+s-9G1EAYNFHMH9M9EBV54Q|1534998852733&adb:adblk_no; ubid-acbjp=358-4070913-7925309; x-wl-uid=1Unk1H6JskLAcb2dcvudl/aGMb4bakh7nVXyKd642RkZAlUOiUXrvvHW0XVDZ2YqnIeRxc+JX5F8=; session-token=1XO3ZdmrMzwcLtAB3fO1X7zdYu/8J/5yOo8tV5XE1IHzCukmsKqXmSGO0bstnYcODlcDbpN2z65F4leU4cQEeKGKvc42vCjckWKGS9WcNAhPQtq+UzrlT42SKkGvc+z5WQHw6ZsszF8gexWsiFtLm1yYI0SB6buHWNxTG6/owek7BsIN5wZQGg4YX1ZkSpPV`)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

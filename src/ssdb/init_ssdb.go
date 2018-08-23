@@ -41,9 +41,14 @@ func (this *ConnectionPool) GetSSDBClient() *gossdb.Client {
 	return c
 }
 
-func (this *ConnectionPool) ResetEnableCategory() {
+func (this *ConnectionPool) ResetEnableCategoryAndPageLog() {
 	c := SSDBPool.GetSSDBClient()
 	defer c.Close()
+
+	err := c.Qclear("tail_links")
+	if err != nil {
+		glog.Errorf("SSDB clear queue error => %+v", err)
+	}
 
 	res, err := c.HgetAll("all_level")
 	if err != nil {
