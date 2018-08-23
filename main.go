@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-
 	configPath := flag.String("config", "conf/dev.toml", "specific config file")
 	flag.Parse()
 
