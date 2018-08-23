@@ -2,6 +2,7 @@ package ssdbtool
 
 import (
 	"fmt"
+	"schema"
 
 	"github.com/golang/glog"
 	"github.com/seefan/gossdb"
@@ -17,8 +18,8 @@ type ConnectionPool struct {
 func InitSSDB() {
 	var err error
 	SSDBPool.pool, err = gossdb.NewPool(&conf.Config{
-		Host:             "127.0.0.1",
-		Port:             8888,
+		Host:             schema.Config.SSDB.IP,
+		Port:             schema.Config.SSDB.Port,
 		ReadWriteTimeout: 180,
 		MinPoolSize:      5,
 		MaxPoolSize:      20,

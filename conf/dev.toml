@@ -1,0 +1,9 @@
+[ssdb]
+    ip = "127.0.0.1"
+    port = 8888
+
+[spider]
+    znum = 1
+    categoryLevel = 1
+    enableCategory = false
+    enableProduct = true
