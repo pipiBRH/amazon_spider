@@ -11,3 +11,21 @@ var BlockCategory = map[string]bool{
 	"クレジットカード＆Amazonポイント": true,
 	"DVD・ミュージック・ゲーム":      true,
 }
+
+var Config Conf
+
+type Conf struct {
+	SSDB   SSDBConf
+	Spider SpiderConf
+}
+type SSDBConf struct {
+	IP   string
+	Port int
+}
+
+type SpiderConf struct {
+	Znum           int
+	CategoryLevel  int
+	EnableCategory bool
+	EnableProduct  bool
+}
