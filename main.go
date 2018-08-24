@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-
 	defer glog.Flush()
 	glog.Info("Spider GO!")
 
