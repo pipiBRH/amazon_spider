@@ -1,5 +1,9 @@
 package schema
 
+import (
+	"time"
+)
+
 var BlockCategory = map[string]bool{
 	"Prime Video":    true,
 	"Amazon Music":   true,
@@ -28,4 +32,5 @@ type SpiderConf struct {
 	CategoryLevel  int
 	EnableCategory bool
 	EnableProduct  bool
+	Sleep          time.Duration
 }

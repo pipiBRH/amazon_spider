@@ -62,5 +62,4 @@ func (this *ConnectionPool) ResetEnableCategoryAndPageLog() {
 			glog.Errorf("SSDB clear enable error => %+v", err)
 		}
 	}
-
 }
