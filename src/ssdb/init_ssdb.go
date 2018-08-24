@@ -15,7 +15,7 @@ type ConnectionPool struct {
 	pool *gossdb.Connectors
 }
 
-func InitSSDB() {
+func init() {
 	var err error
 	SSDBPool.pool, err = gossdb.NewPool(&conf.Config{
 		Host:             schema.Config.SSDB.IP,

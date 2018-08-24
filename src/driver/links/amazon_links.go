@@ -5,6 +5,7 @@ import (
 	"curl"
 	"fmt"
 	"net/url"
+	"schema"
 	"ssdb"
 	"strconv"
 	"strings"
@@ -46,7 +47,7 @@ func start(wg *sync.WaitGroup) {
 			glog.Errorf("Curl Error => %+v", err)
 		}
 
-		time.Sleep(time.Microsecond * 10)
+		time.Sleep(time.Microsecond * 100 * schema.Config.Spider.Sleep)
 
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
@@ -75,7 +76,7 @@ func start(wg *sync.WaitGroup) {
 				continue
 			}
 
-			time.Sleep(time.Microsecond * 10)
+			time.Sleep(time.Microsecond * 100 * schema.Config.Spider.Sleep)
 
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 			if err != nil {
