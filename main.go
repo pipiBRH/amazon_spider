@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cmdline"
+	_ "cmdline"
 	"driver/category"
 	"driver/links"
 	"schema"
@@ -12,12 +12,10 @@ import (
 )
 
 func main() {
-	cmd.InitCmd()
 
 	defer glog.Flush()
 	glog.Info("Spider GO!")
 
-	ssdbtool.InitSSDB()
 	defer ssdbtool.SSDBPool.ClosePool()
 
 	if schema.Config.Spider.EnableCategory {
