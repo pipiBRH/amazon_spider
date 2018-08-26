@@ -1,8 +1,8 @@
 package ssdbtool
 
 import (
+	"amazon_spider/src/schema"
 	"fmt"
-	"schema"
 
 	"github.com/golang/glog"
 	"github.com/seefan/gossdb"

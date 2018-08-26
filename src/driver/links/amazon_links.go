@@ -1,12 +1,12 @@
 package driverlink
 
 import (
+	"amazon_spider/src/curl"
+	"amazon_spider/src/schema"
+	"amazon_spider/src/ssdb"
 	"crypto/md5"
-	"curl"
 	"fmt"
 	"net/url"
-	"schema"
-	"ssdb"
 	"strconv"
 	"strings"
 	"sync"

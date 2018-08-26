@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"amazon_spider/src/schema"
 	"flag"
-	"schema"
 
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"

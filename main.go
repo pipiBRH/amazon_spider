@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "cmdline"
-	"driver/category"
-	"driver/links"
-	"schema"
-	"ssdb"
+	_ "amazon_spider/src/cmdline"
+	"amazon_spider/src/driver/category"
+	"amazon_spider/src/driver/links"
+	"amazon_spider/src/schema"
+	"amazon_spider/src/ssdb"
 	"sync"
 
 	"github.com/golang/glog"
