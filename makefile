@@ -1,3 +1,4 @@
+
 all: clean build rmlog
 
 clean:
@@ -17,4 +18,5 @@ dep:
 	go get github.com/BurntSushi/toml
 	go get github.com/PuerkitoBio/goquery
 	go get github.com/golang/glog
+
 
