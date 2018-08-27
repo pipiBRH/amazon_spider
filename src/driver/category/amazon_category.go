@@ -1,11 +1,11 @@
 package drivercategory
 
 import (
-	"curl"
+	"amazon_spider/src/curl"
+	"amazon_spider/src/schema"
+	"amazon_spider/src/ssdb"
 	"fmt"
 	"net/url"
-	"schema"
-	"ssdb"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"

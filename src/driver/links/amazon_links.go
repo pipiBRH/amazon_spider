@@ -1,11 +1,12 @@
 package driverlink
 
 import (
+	"amazon_spider/src/curl"
+	"amazon_spider/src/schema"
+	"amazon_spider/src/ssdb"
 	"crypto/md5"
-	"curl"
 	"fmt"
 	"net/url"
-	"ssdb"
 	"strconv"
 	"strings"
 	"sync"
@@ -46,7 +47,7 @@ func start(wg *sync.WaitGroup) {
 			glog.Errorf("Curl Error => %+v", err)
 		}
 
-		time.Sleep(time.Microsecond * 10)
+		time.Sleep(time.Microsecond * 100 * schema.Config.Spider.Sleep)
 
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 		if err != nil {
@@ -75,7 +76,7 @@ func start(wg *sync.WaitGroup) {
 				continue
 			}
 
-			time.Sleep(time.Microsecond * 10)
+			time.Sleep(time.Microsecond * 100 * schema.Config.Spider.Sleep)
 
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(rdata))
 			if err != nil {
