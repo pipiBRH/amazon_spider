@@ -3,6 +3,7 @@ all: clean build rmlog
 
 clean:
 	vgo clean
+
 build: 
 	vgo build
 
@@ -17,3 +18,5 @@ dep:
 	go get github.com/BurntSushi/toml
 	go get github.com/PuerkitoBio/goquery
 	go get github.com/golang/glog
+
+
